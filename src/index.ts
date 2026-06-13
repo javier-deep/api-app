@@ -1,8 +1,8 @@
 import 'dotenv/config';
 import cors from 'cors';
 import express from 'express';
+import { ensureSchema, pool } from './db.js';
 import { mensajesRouter } from './routes/mensajes.js';
-import { pool } from './db.js';
 
 const app = express();
 const port = Number.parseInt(process.env.PORT ?? '3000', 10);
@@ -39,6 +39,15 @@ app.use((error: unknown, _req: express.Request, res: express.Response, _next: ex
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-app.listen(port, () => {
-  console.log(`Servidor escuchando en el puerto ${port}`);
+async function bootstrap(): Promise<void> {
+  await ensureSchema();
+
+  app.listen(port, () => {
+    console.log(`Servidor escuchando en el puerto ${port}`);
+  });
+}
+
+bootstrap().catch((error) => {
+  console.error('No se pudo inicializar la base de datos', error);
+  process.exit(1);
 });
